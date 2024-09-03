@@ -1,4 +1,6 @@
-export PROJECT=qwiklabs-gcp-04-07ab4338ef5f
+gcloud auth login --cred-file creds.json
+
+export PROJECT=qwiklabs-gcp-02-43fb674cc26e
 
 gcloud config set project $PROJECT
 
@@ -6,10 +8,10 @@ export NETWORK_NAME=my-internal-app
 export SUBNET_A_NAME=subnet-a
 export SUBNET_B_NAME=subnet-b
 
-export REGION=us-east1
-export ZONE_1=us-east1-b
+export REGION=us-east4
+export ZONE_1=us-east4-c
 # Same zone as ZONE_1 set on own discretion
-export ZONE_2=us-east1-c
+export ZONE_2=us-east4-b
 
 gcloud config set compute/region $REGION
 
@@ -35,11 +37,12 @@ gcloud compute firewall-rules create 'app-allow-http' \
 echo "Create health check firewall rule"
 
 gcloud compute firewall-rules create 'app-allow-health-check' \
- --network=$FW_NAME \
  --target-tags=$TARGET_TAGS \
  --direction='INGRESS' \
  --source-ranges=$HC_RANGE_1,$HC_RANGE_2 \
  --allow='TCP'
+# the task did not specify that the firewall rule should relate to the custom network
+
 
 read -p  "Continue..." -s
 echo ""
@@ -50,20 +53,27 @@ echo "Create instance templates"
 
 export IT_1_NAME=instance-template-1
 export IT_2_NAME=instance-template-2
-export IT_1_SERIES=E2
+# export IT_1_SERIES=E2
+## case matters here!
+# export IT_1_SERIES=e2
+## also, valid machine type is required, not machine family (shows when creating instance group)
+export IT_1_SERIES=e2-standard-2
+
+
 export METADATA_1='startup-script-url=gs://gcloud-training/gcpnet/ilb/startup.sh'
 
 
 gcloud compute instance-templates create $IT_1_NAME \
- --custom-vm-type=$IT_1_SERIES \
+ --machine-type=$IT_1_SERIES \
  --tags=$TARGET_TAGS \
  --network=$NETWORK_NAME \
  --subnet=$SUBNET_A_NAME \
  --metadata=$METADATA_1
+# --custom-vm-type=$IT_1_SERIES  should not be used as this is not a custom vm creating scenario
 
 
 gcloud compute instance-templates create $IT_2_NAME \
- --custom-vm-type=$IT_1_SERIES \
+ --machine-type=$IT_1_SERIES \
  --tags=$TARGET_TAGS \
  --network=$NETWORK_NAME \
  --subnet=$SUBNET_B_NAME \
@@ -84,31 +94,61 @@ export IG_2_NAME=instance-group-2
 
 gcloud compute instance-groups managed create $IG_1_NAME \
  --template=$IT_1_NAME \
- --region=$REGION \
  --zone=$ZONE_1 \
  --size=1
 
+## either region OR zone can be specified
+
+
 gcloud compute instance-groups managed create $IG_2_NAME \
  --template=$IT_2_NAME \
- --region=$REGION \
  --zone=$ZONE_2 \
  --size=1
 
 gcloud compute instance-groups managed set-autoscaling $IG_1_NAME \
+ --min-num-replicas=1 \
  --max-num-replicas=5 \
- --target-cpu-utilization=80 \
- --cool-down-period=45
+ --target-cpu-utilization=$((80/100)) \
+ --cool-down-period=45 \
+ --zone=$ZONE_1
+
+## target CPU util must be < 1.0
+## requires zone info if i-g created in a zone - it searches the region for the i-g instead
 
 
 gcloud compute instance-groups managed set-autoscaling $IG_2_NAME \
  --max-num-replicas=5 \
- --target-cpu-utilization=80 \
- --cool-down-period=45
+ --min-num-replicas=1 \
+ --target-cpu-utilization=$((80/100)) \
+ --cool-down-period=45 \
+ --zone=$ZONE_2
 
 gcloud compute instance-groups managed list
 
 
 read -p  "Continue..." -s
+echo ""
+
+############
+
+echo "### Creating util vm"
+
+export UTILITY_CUSTOM_IP_NAME=utility-custom-ip
+
+gcloud compute addresses create $UTILITY_CUSTOM_IP_NAME \
+ --addresses=10.10.20.50 \
+ --subnet=$SUBNET_A_NAME
+
+## ephemeral IP allocation is required prior to setting it as vm address
+
+gcloud compute instances create utility-vm \
+ --zone=$ZONE_1 \
+ --machine-type=e2-micro \
+ --network=$NETWORK_NAME \
+ --subnet=$SUBNET_A_NAME \
+ --address=$UTILITY_CUSTOM_IP_NAME
+
+read -p "Contnue?" -s
 echo ""
 
 ############
@@ -128,10 +168,10 @@ export BE_SERVICE_NAME=my-backend-service
 gcloud compute backend-services create $BE_SERVICE_NAME \
  --global
 
-gcloud compute backend-service add-backend $BE_SERVICE_NAME \
+gcloud compute backend-services add-backend $BE_SERVICE_NAME \
  --instance-group=$IG_1_NAME
 
-gcloud compute backend-service add-backend $BE_SERVICE_NAME \
+gcloud compute backend-services add-backend $BE_SERVICE_NAME \
  --instance-group=$IG_2_NAME
 
 echo "### Create IP address ### "
@@ -139,7 +179,7 @@ echo "### Create IP address ### "
 export IP_ADDRESS_NAME=my-ilb-ip
 
 gcloud compute addresses create $IP_ADDRESS_NAME \
- --addres=10.10.30.5 
+ --addresses=10.10.30.5 
 
 echo "### Create LB FrontEnd ### "
 
