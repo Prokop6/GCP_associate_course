@@ -34,7 +34,6 @@ gcloud compute firewall-rules create 'app-allow-http' \
 echo "Create health check firewall rule"
 
 gcloud compute firewall-rules create 'app-allow-health-check' \
- --network=$FW_NAME \
  --target-tags=$TARGET_TAGS \
  --direction='INGRESS' \
  --source-ranges=$HC_RANGE_1,$HC_RANGE_2 \
