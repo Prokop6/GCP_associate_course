@@ -18,7 +18,8 @@ export TARGET_TAGS=lb-backend
 export HC_RANGE_1='130.211.0.0/22'
 export HC_RANGE_2='35.191.0.0/16'
 
-read -p  "Continue...\n" -s
+read -p  "Continue..." -s
+echo ""
 
 ############
 
@@ -34,12 +35,14 @@ gcloud compute firewall-rules create 'app-allow-http' \
 echo "Create health check firewall rule"
 
 gcloud compute firewall-rules create 'app-allow-health-check' \
+ --network=$FW_NAME \
  --target-tags=$TARGET_TAGS \
  --direction='INGRESS' \
  --source-ranges=$HC_RANGE_1,$HC_RANGE_2 \
  --allow='TCP'
 
-read -p  "Continue...\n" -s
+read -p  "Continue..." -s
+echo ""
 
 ############
 
@@ -68,7 +71,8 @@ gcloud compute instance-templates create $IT_2_NAME \
 
 gcloud compute instance-templates list
 
-read -p  "Continue...\n" -s
+read -p  "Continue..." -s
+echo ""
 
 ############
 
@@ -104,7 +108,8 @@ gcloud compute instance-groups managed set-autoscaling $IG_2_NAME \
 gcloud compute instance-groups managed list
 
 
-read -p  "Continue...\n" -s
+read -p  "Continue..." -s
+echo ""
 
 ############
 
