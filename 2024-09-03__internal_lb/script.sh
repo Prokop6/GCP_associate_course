@@ -1,4 +1,4 @@
-export PROJECT=XXX
+export PROJECT=qwiklabs-gcp-04-07ab4338ef5f
 
 gcloud config set project $PROJECT
 
@@ -6,16 +6,19 @@ export NETWORK_NAME=my-internal-app
 export SUBNET_A_NAME=subnet-a
 export SUBNET_B_NAME=subnet-b
 
-export REGION=
-export ZONE_1=
-export ZONE_2=#Same region as ZONE_1 set on own discretion
+export REGION=us-east1
+export ZONE_1=us-east1-b
+# Same zone as ZONE_1 set on own discretion
+export ZONE_2=us-east1-c
 
-gcloud config set compute.region $REGION
+gcloud config set compute/region $REGION
 
 export FW_NAME=my-internal-app
 export TARGET_TAGS=lb-backend
 export HC_RANGE_1='130.211.0.0/22'
 export HC_RANGE_2='35.191.0.0/16'
+
+read -p  "Continue...\n" -s
 
 ############
 
@@ -37,6 +40,8 @@ gcloud compute firewall-rules create 'app-allow-health-check' \
  --source-ranges=$HC_RANGE_1,$HC_RANGE_2 \
  --allow='TCP'
 
+read -p  "Continue...\n" -s
+
 ############
 
 echo "Create instance templates"
@@ -48,8 +53,7 @@ export METADATA_1='startup-script-url=gs://gcloud-training/gcpnet/ilb/startup.sh
 
 
 gcloud compute instance-templates create $IT_1_NAME \
- --global \
- --custom-series=$IT_1_SERIES \
+ --custom-vm-type=$IT_1_SERIES \
  --tags=$TARGET_TAGS \
  --network=$NETWORK_NAME \
  --subnet=$SUBNET_A_NAME \
@@ -57,14 +61,15 @@ gcloud compute instance-templates create $IT_1_NAME \
 
 
 gcloud compute instance-templates create $IT_2_NAME \
- --global \
- --custom-series=$IT_1_SERIES \
+ --custom-vm-type=$IT_1_SERIES \
  --tags=$TARGET_TAGS \
  --network=$NETWORK_NAME \
  --subnet=$SUBNET_B_NAME \
  --metadata=$METADATA_1
 
 gcloud compute instance-templates list
+
+read -p  "Continue...\n" -s
 
 ############
 
@@ -99,6 +104,8 @@ gcloud compute instance-groups managed set-autoscaling $IG_2_NAME \
 
 gcloud compute instance-groups managed list
 
+
+read -p  "Continue...\n" -s
 
 ############
 
