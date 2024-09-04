@@ -1,0 +1,11 @@
+description: Edit access for App Versions
+etag: BwYhUSYSi2I=
+includedPermissions:
+- appengine.versions.create
+- appengine.versions.delete
+- storage.buckets.get
+- storage.buckets.list
+
+name: projects/qwiklabs-gcp-01-b6833eff5ea0/roles/editor
+stage: ALPHA
+title: Role Editor
