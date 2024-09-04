@@ -1,6 +1,6 @@
 gcloud auth login --cred-file creds.json
 
-export PROJECT=qwiklabs-gcp-02-43fb674cc26e
+export PROJECT=qwiklabs-gcp-03-6da1a599c978
 
 gcloud config set project $PROJECT
 
@@ -8,10 +8,10 @@ export NETWORK_NAME=my-internal-app
 export SUBNET_A_NAME=subnet-a
 export SUBNET_B_NAME=subnet-b
 
-export REGION=us-east4
-export ZONE_1=us-east4-c
+export REGION=us-east1
+export ZONE_1=us-east1-c
 # Same zone as ZONE_1 set on own discretion
-export ZONE_2=us-east4-b
+export ZONE_2=us-east1-b
 
 gcloud config set compute/region $REGION
 
@@ -135,18 +135,24 @@ echo "### Creating util vm"
 
 export UTILITY_CUSTOM_IP_NAME=utility-custom-ip
 
-gcloud compute addresses create $UTILITY_CUSTOM_IP_NAME \
- --addresses=10.10.20.50 \
- --subnet=$SUBNET_A_NAME
+#gcloud compute addresses create $UTILITY_CUSTOM_IP_NAME \
+# --addresses=10.10.20.50 \
+# --subnet=$SUBNET_A_NAME \
+# --region=$REGION
 
 ## ephemeral IP allocation is required prior to setting it as vm address
+## it is not - IP reservation creates a static IP address not an ephemeral one
 
 gcloud compute instances create utility-vm \
  --zone=$ZONE_1 \
  --machine-type=e2-micro \
  --network=$NETWORK_NAME \
  --subnet=$SUBNET_A_NAME \
- --address=$UTILITY_CUSTOM_IP_NAME
+ --private-network-ip=10.10.20.50
+
+#--address=$UTILITY_CUSTOM_IP_NAME
+## use private-network-ip for emphemeral custom ip declaration
+
 
 read -p "Contnue?" -s
 echo ""
@@ -158,8 +164,7 @@ echo "### Create health check ###"
 export HC_NAME=my-ilb-health-check
 
 gcloud compute health-checks create http $HC_NAME \
- --port=80 \
- --protocol=TCP
+ --port=80 
 
 echo "### Create backends ###"
 
