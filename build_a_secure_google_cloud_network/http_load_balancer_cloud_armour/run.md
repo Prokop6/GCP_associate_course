@@ -5,8 +5,8 @@
 ```shell
 gcloud auth login --cred-file ./creds.json
 
-export PROJECT=qwiklabs-gcp-00-e2f746e1b505
-export REGION_1=us-east1
+export PROJECT=qwiklabs-gcp-04-0181a3894a02
+export REGION_1=europe-west4
 export REGION_2=europe-west1
 
 gcloud config set project $PROJECT
@@ -180,7 +180,7 @@ export BACKEND_SERVICE_NAME="http-backend"
 ```
 
 ```shell
-gcloud compute health-checks create TCP $HC_NAME \
+gcloud compute health-checks create tcp $HC_NAME \
 --port 80 \
 --enable-logging \
 --check-interval 5 \
@@ -213,7 +213,7 @@ gcloud compute backend-services add-backend ${BACKEND_SERVICE_NAME} \
 gcloud compute backend-services add-backend ${BACKEND_SERVICE_NAME} \
 --instance-group ${IG_2_NAME} \
 --instance-group-region ${IG_2_REGION} \
---global-backend-service \
+--global \
 --balancing-mode "UTILIZATION" \
 --max-utilization "0.80"
 ```
@@ -224,25 +224,23 @@ gcloud compute url-maps create ${URL_MAP_NAME} \
 ```
 
 ```shell
-gcloud compute target-http-proxies create ${LB_NAME}_proxy \
+gcloud compute target-http-proxies create ${LB_NAME}-proxy \
 --url-map ${URL_MAP_NAME}
 ```
 
-the task calls for an FORWARDING RULE!!
-
 ```shell
-gcloud compute forwarding-rules create ${LB_NAME}_forward_ipv4 \
---load-balancing-scheme "EXTERNAL MANAGED" \
---target-http-proxy ${LB_NAME}_proxy \
+gcloud compute forwarding-rules create ${LB_NAME}-forward-ipv4 \
+--load-balancing-scheme "EXTERNAL" \
+--target-http-proxy ${LB_NAME}-proxy \
 --global \
 --ip-version IPV4 \
 --ports 80
 ```
 
 ```shell
-gcloud compute forwarding-rules create ${LB_NAME}_forward_ipv6 \
---load-balancing-scheme "EXTERNAL MANAGED" \
---target-http-proxy ${LB_NAME}_proxy \
+gcloud compute forwarding-rules create ${LB_NAME}-forward-ipv6 \
+--load-balancing-scheme "EXTERNAL" \
+--target-http-proxy ${LB_NAME}-proxy \
 --global \
 --ip-version IPV6 \
 --ports 80
@@ -258,14 +256,13 @@ gcloud compute forwarding-rules create ${LB_NAME}_forward_ipv6 \
 
 ```shell
 export VM_NAME=siege-vm
-export REGION_3=
-export ZONE_3=
+export REGION_3=us-east4
+export ZONE_3=us-east4-c
 export series="E2"
 ```
 
 ```shell
-gcloud compute instance create ${VM_NAME} \
---region ${REGION_3} \
+gcloud compute instances create ${VM_NAME} \
 --zone ${ZONE_3} \
 --machine-type "e2-standard-2"
 ```
@@ -298,13 +295,25 @@ http://${LB_IP}
 ### Deny-list siege vm
 
 ```shell
-export SIEGE_IP=
+export SIEGE_IP=35.194.83.136
 export DENYLIST_NAME=denylist-siege
 ```
 
+create policy:
+
 ```shell
-gcloud
-TODO
+gcloud compute security-policies create ${DENYLIST_NAME} \
+--type "CLOUD_ARMOR" \
+--global
+```
+
+create rule in said policy:
+
+```shell
+gcloud compute security-policies rules create 1000 \
+--action deny-403 \
+--security-policy ${DENYLIST_NAME} \
+--src-ip-ranges ${SIEGE_IP}
 ```
 
 ### Test
