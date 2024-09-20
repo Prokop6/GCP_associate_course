@@ -5,9 +5,9 @@
 ```shell
 gcloud auth login --cred-file ./creds.json
 
-export PROJECT=qwiklabs-gcp-04-0181a3894a02
-export REGION_1=europe-west4
-export REGION_2=europe-west1
+export PROJECT=
+export REGION_1=
+export REGION_2=
 
 gcloud config set project $PROJECT
 ```
