@@ -17,7 +17,7 @@
 ## Basic setup
 
 ```shell
-gcloud auth login --creds-file ./creds.json
+gcloud auth login --cred-file ./creds.json
 
 export PROJECT=
 
@@ -27,13 +27,22 @@ export SSH_IAP_NETWORK_TAG=
 export HTTP_NETWORK_TAG=
 export SSH_INTERNAL_NETWORK_TAG=
 
-export SUBNET_NAME=acme-mgmt-subnet
+export NETWORK_NAME=
+export SUBNET_NAME=
+
 ```
 
 ## Remove overly permissive firewall rules
 
 ```shell
 gcloud compute firewall-rules list
+
+```
+
+run following for all rules looking to broad
+
+```shell
+gcloud compute firewall-rules delete
 
 ```
 
@@ -50,17 +59,27 @@ gcloud compute instances list
 
 ```shell
 export BASTION_HOST_NAME=
-
+export PROD_SERVER_NAME=
 ```
 
 start the bastion vm
 
 ```shell
-gcloud compute instances start
+gcloud compute instances start $BASTION_HOST_NAME
 
 ```
 
 ### Test
+
+```shell
+gcloud compute instances add-tags $BASTION_HOST_NAME \
+--tags $SSH_IAP_NETWORK_TAG 
+```
+
+```shell
+gcloud compute instances add-tags $PROD_SERVER_NAME \
+--tags $HTTP_NETWORK_TAG,$SSH_INTERNAL_NETWORK_TAG
+```
 
 ## Configure firewall rules
 
@@ -70,6 +89,7 @@ gcloud compute instances start
 
 ```shell
 gcloud compute firewall-rules create allow-ssh-ingress-from-iap \
+--network $NETWORK_NAME \
 --direction INGRESS \
 --action allow \
 --rules tcp:22 \
@@ -87,6 +107,7 @@ possibly: add IAM policy bindings for specific users to give access to the VM
 ```shell
 gcloud compute firewall-rules create allow-ssh-ingres-from-bastion \
 --direction INGRESS \
+--network $NETWORK_NAME \
 --action allow \
 --rules tcp:22 \
 --source-tags $SSH_IAP_NETWORK_TAG \
@@ -97,12 +118,12 @@ gcloud compute firewall-rules create allow-ssh-ingres-from-bastion \
 ### Configure fw rule for external http to production
 
 ```shell
-gcloud compute firewall-rules create 
-allow-public-ssh-ingress \
+gcloud compute firewall-rules create allow-public-ssh-ingress \
+--network $NETWORK_NAME \
 --direction INGRESS \
 --action allow \
 --rules tcp:80 \
---soruce-ranges 0.0.0.0/0 \
+--source-ranges 0.0.0.0/0 \
 --target-tags $HTTP_NETWORK_TAG
 
 ```
