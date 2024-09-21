@@ -13,12 +13,12 @@
 gcloud auth login --cred-file ./creds.json
 
 export REGION=
-export ZONE=europe-west1-c
-export PROJECT=qwiklabs-gcp-00-a63946a8a93a
+export ZONE=
+export PROJECT=
 
 export TEAM_NAME=nucleus
-export FIREWALL_RULE_NAME=allow-tcp-rule-520
-export INSTANCE_NAME_01=nucleus-jumphost-726
+export FIREWALL_RULE_NAME=
+export INSTANCE_NAME_01=
 
 gcloud config set project $PROJECT
 gcloud config set compute/region $REGION
@@ -87,6 +87,8 @@ sed -i -- 's/nginx/Google Cloud Platform - '"\$HOSTNAME"'/' /var/www/html/index.
 EOF"
 
 ```
+
+note - there was an issue with the startup script - the file was created but not executed on startup, either "`sudo /startup.sh` should be added to the script or the code should be passed directly to the metadata.
 
 ### create managed instance group
 
