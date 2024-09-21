@@ -1,11 +1,13 @@
 resource "google_compute_firewall" "allow-http-ingress-rule" {
   name    = "tf-firewall"
-  network = network.network_self_link
+  network = module.network.network_self_link
 
   allow {
     protocol = "tcp"
     ports    = ["80"]
   }
 
-  source_ranges = "0.0.0.0/0"
+  source_ranges = [
+    "0.0.0.0/0"
+  ]
 }

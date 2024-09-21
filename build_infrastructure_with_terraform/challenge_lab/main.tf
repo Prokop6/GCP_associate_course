@@ -44,10 +44,10 @@ module  "tf-instance-1" {
     region = var.region
     zone    =   var.zone
     
-    #machine_type = var.machine_type
+#    machine_type = var.machine_type
 
-    #network_name = module.network.network_name
-    #subnet_name = "subnet-01"
+#    network_name = module.network.network_name
+#    subnet_name = "subnet-01"
 
 }
 
@@ -60,17 +60,16 @@ module  "tf-instance-2" {
     region  =   var.region
     zone    =   var.zone
 
-    #machine_type = var.machine_type
+#    machine_type = var.machine_type
 
-   #network_name = module.network.network_name
-   #subnet_name = "subnet-02"
+#   network_name = module.network.network_name
+#   subnet_name = "subnet-02"
 }
 
 
 # The module name must be the same as the new instance name, and variables cannot be used - it has to be hardcoded specificly for the run
 
 /*
-
 
 module  "tf-instance-3" {
     source  =   "./module/instances"
