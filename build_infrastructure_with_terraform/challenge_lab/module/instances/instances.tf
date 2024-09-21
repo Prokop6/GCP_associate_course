@@ -1,17 +1,9 @@
-variable "name" {}
-
-variable "vpc_network_name" {
-    type = string
-    default = "default"
-}
-variable "subnet" {
-    type = string
-    default = ""
-}
-
 resource "google_compute_instance" "vm" {
-    
+
+    project = var.project_id
+
     name    =   var.name
+    
     machine_type = var.machine_type
     zone         = var.zone
     
@@ -30,9 +22,9 @@ resource "google_compute_instance" "vm" {
 
    
     network_interface {
-        network =   var.vpc_network_name
+        network =   var.network_name
 
-        
-        #subnetwork = var.subnet
+  
+        subnetwork = var.subnet_name
     }
 }

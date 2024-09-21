@@ -2,8 +2,10 @@ module "network" {
   source  = "terraform-google-modules/network/google"
   version = "6.0.0"
 
-    project_id = var.project-id
-    network_name = "default"
+    project_id = var.project_id
+    
+    network_name = var.vpc_network_name
+    
     subnets = [
       {
         subnet_name = "subnet-01"
@@ -11,7 +13,7 @@ module "network" {
         subnet_region = var.region
       },
      {
-        subnet_name = subnet-02
+        subnet_name = "subnet-02"
         subnet_ip =  "10.10.20.0/24"
         subnet_region = var.region
       }

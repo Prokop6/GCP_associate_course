@@ -13,8 +13,12 @@ export ZONE=
 export TF_VAR_project-id=$PROJECT
 export TF_VAR_region=$REGION
 export TF_VAR_zone=$ZONE
+export TF_VAR_vpc_network_name
+export TF_VAR_bucket_name=
 
 gcloud config set project $PROJECT
+gcloud config set compute/region $REGION
+gcloud config set compute/zone $ZONE
 
 ```
 
@@ -54,12 +58,14 @@ uncomment tf-instance-1 and tf-instance-2 in main.tf
 ```shell
 terraform init
 
-terraform import module.tf-instance-1.google_compute_instance.vm  $PROJECT/tf-instance-1
-import module.tf-instance-2.google_compute_instance.vm $PROJECT/tf-instance-2
+terraform import module.tf-instance-1.google_compute_instance.vm  tf-instance-1
+import module.tf-instance-2.google_compute_instance.vm tf-instance-2
 
 terraform apply
 
 ```
+
+documentation says that import should accept PROJECT/RES_NAME format of data, but this did not work with the PROJECT prefix
 
 apply will cause to update machines in place
 
@@ -82,10 +88,9 @@ setup remote backend
 uncomment backend "gcp" part in main.tf
 
 ```shell
-export TF_VAR_bucket_name=
 
 terraform init
-terraform plan -o tf_plan
+terraform plan -out tf_plan
 
 terraform apply tf_plan
 
@@ -97,7 +102,7 @@ terraform apply tf_plan
 
 ```shell
 export TF_VAR_machine_type=e2-standard-2
-export TF_VAR_tf-instance-3-name=
+export TF_VAR_tf_instance_3_name=
 
 ```
 

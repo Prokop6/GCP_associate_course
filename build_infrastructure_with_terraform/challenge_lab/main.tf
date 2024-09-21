@@ -1,5 +1,5 @@
 provider "google" {
-    project = var.project-id
+    project = var.project_id
     region  = var.region
     zone    =   var.zone
 }
@@ -13,55 +13,75 @@ terraform {
     }
 
     /*
-    backend "gcp" {
-        bucket  = var.bucket_name
+    backend "gcs" {
+        #bucket  = #BUCKET NAME, NO variables
         prefix  = "terraform/state"
-  }
+    }
 
-  */
+    */
+
 }
 
 /*
-module var.bucket_name {
+module "backend_bucket" {
     source  =   "./module/storage"
 
-    name    =   var.bucket-name
+    project_id = var.project_id
+    region = var.region
+    zone = var.zone
+
+    name    =   var.bucket_name
 }
+*/
+
 
 module  "tf-instance-1" {
     source  =   "./module/instances"
     
+    project_id = var.project_id
+    
     name    =   "tf-instance-1"
+    region = var.region
     zone    =   var.zone
+    
+    #machine_type = var.machine_type
 
-    network = default
-    # network = network.network_name
-   # subnet = subnet-01
+    #network_name = module.network.network_name
+    #subnet_name = "subnet-01"
 
 }
 
 module  "tf-instance-2" {
     source  =   "./module/instances"
+    
+    project_id =  var.project_id
 
     name    =   "tf-instance-2"
+    region  =   var.region
     zone    =   var.zone
 
-    network = default
+    #machine_type = var.machine_type
 
-    #network = network.network_name
-   # subnet = "subnet-02"
+   #network_name = module.network.network_name
+   #subnet_name = "subnet-02"
 }
 
-*/
+
+# The module name must be the same as the new instance name, and variables cannot be used - it has to be hardcoded specificly for the run
 
 /*
 
 
-module  var.tf-instance-3-name {
+module  "tf-instance-3" {
     source  =   "./module/instances"
 
-    name    =   var.tf-instance-3-name
+    project_id = var.project_id
+    region = var.region
     zone    =   var.zone
+
+    machine_type = var.machine_type 
+
+    name    =   var.tf_instance_3_name
 }
 
 */

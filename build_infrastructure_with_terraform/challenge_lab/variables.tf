@@ -6,16 +6,25 @@ variable "zone" {
     type    =   string
 }
 
-variable "project-id" {
+variable "project_id" {
     type    =   string
 }
 
-variable "tf-instance-3-name" {
+variable "tf_instance_3_name" {
     type = string
     default = ""
 }
 
-variable "tf-bucket-name" {
+variable "bucket_name" {
+    type = string
+}
+
+variable "machine_type" {
     type = string
     default = ""
+}
+
+variable "vpc_network_name" {
+    type = string
+    default = "default"
 }
