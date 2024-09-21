@@ -318,4 +318,4 @@ gcloud compute security-policies rules create 1000 \
 
 ### Test
 
-*additionaly try to access the Proxy from Siege*
+*additionally try to access the Proxy from Siege*
