@@ -13,9 +13,12 @@
 gcloud auth login --cred-file ./creds.json
 
 export REGION=
-export ZONE=
-export PROJECT=
+export ZONE=europe-west1-c
+export PROJECT=qwiklabs-gcp-00-a63946a8a93a
+
 export TEAM_NAME=nucleus
+export FIREWALL_RULE_NAME=allow-tcp-rule-520
+export INSTANCE_NAME_01=nucleus-jumphost-726
 
 gcloud config set project $PROJECT
 gcloud config set compute/region $REGION
@@ -30,7 +33,6 @@ export MACHINE_TYPE_LINUX=e2-micro
 
 ```shell
 
-export INSTANCE_NAME_01=nucleus-jumphost-736
 export INSTANCE_ZONE_01=$ZONE
 export MACHINE_TYPE_01=e2-micro
 export IMAGE_FAMILY_LINUX=debian-12
@@ -73,9 +75,8 @@ gcloud compute instance-templates create $TEMPLATE_NAME \
 --image-family $IMAGE_FAMILY \
 --image-project debian-cloud \
 --tags allow-http \
---global \
 --metadata \
-startup-script=cat << EOF > startup.sh
+startup-script="cat << EOF > startup.sh 
 
 # ! /bin/bash
 
@@ -83,7 +84,8 @@ apt-get update
 apt-get install -y nginx
 service nginx start
 sed -i -- 's/nginx/Google Cloud Platform - '"\$HOSTNAME"'/' /var/www/html/index.nginx-debian.html
-EOF
+EOF"
+
 ```
 
 ### create managed instance group
@@ -95,15 +97,11 @@ gcloud compute instance-groups managed create $INSTANCE_GROUP_NAME \
 --size 2
 
 gcloud compute instance-groups set-named-ports $INSTANCE_GROUP_NAME \
+--region $REGION \
 --named-ports http:80
 ```
 
 ### create firewall rule
-
-```shell
-export FIREWALL_RULE_NAME=
-
-```
 
 ```shell
 gcloud compute firewall-rules create $FIREWALL_RULE_NAME \
@@ -134,7 +132,7 @@ gcloud compute health-checks create http $HEALTH_CHECK_NAME \
 ### create backend service
 
 ```shell
-export BACKEND_SERVICE_NAME=$${TEAM_NAME}-nginx-http-service
+export BACKEND_SERVICE_NAME=${TEAM_NAME}-nginx-http-service
 
 ```
 
@@ -146,7 +144,7 @@ gcloud compute backend-services create $BACKEND_SERVICE_NAME \
 ```
 
 ```shell
-gcloud compute backend-service add-backend $BACKEND_SERVICE_NAME \
+gcloud compute backend-services add-backend $BACKEND_SERVICE_NAME \
 --instance-group $INSTANCE_GROUP_NAME \
 --instance-group-region $REGION \
 --global \
@@ -157,19 +155,21 @@ gcloud compute backend-service add-backend $BACKEND_SERVICE_NAME \
 ### create url map
 
 ```shell
-export URL_MAP_NAME=${TEAM_NAME}-nginx_url_map
+export URL_MAP_NAME=${TEAM_NAME}-nginx-url-map
+
 ```
 
 ```shell
 gcloud compute url-maps create $URL_MAP_NAME \
 --default-service $BACKEND_SERVICE_NAME \
 --global
+
 ```
 
 ### create target http proxy
 
 ```shell
-export HTTP_PROXY_NAME=${TEAM_NAME}-nginx_proxy
+export HTTP_PROXY_NAME=${TEAM_NAME}-nginx-proxy
 
 ```
 
@@ -182,7 +182,7 @@ gcloud compute target-http-proxies create $HTTP_PROXY_NAME \
 ### create forwarding rule
 
 ```shell
-export FORWARDING_RULE_NAME=${TEAM_NAME}-http_forwarding_rule
+export FORWARDING_RULE_NAME=${TEAM_NAME}-http-forwarding-rule
 
 ```
 
@@ -190,9 +190,11 @@ export FORWARDING_RULE_NAME=${TEAM_NAME}-http_forwarding_rule
 gcloud compute forwarding-rules create $FORWARDING_RULE_NAME \
 --global \
 --target-http-proxy $HTTP_PROXY_NAME \
---backend-service $BACKEND_SERVICE_NAME \
 --load-balancing-scheme "EXTERNAL" \
 --ports 80
+
 ```
 
 ### Test
+
+there where issues with the startup script - had to ssh into vms and run `sudo /startup.sh` manually
